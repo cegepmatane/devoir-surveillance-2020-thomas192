@@ -57,10 +57,8 @@ CREATE TRIGGER journaliserModification BEFORE UPDATE ON chainedemontagne FOR EAC
 
 ### Statistiques
 
-#### Table 'sommet'
-
 ````sql
-CREATE OR REPLACE PROCEDURE statistiquesSommet()
+CREATE OR REPLACE PROCEDURE statistiques()
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -72,6 +70,9 @@ DECLARE
 	nombre integer;
 	altitudeMoyenne integer;
 BEGIN
+/* ---------------------------------- TABLE SOMMET ---------------------------------- */
+    
+    /* Checksum */
     SELECT SUM(('x' || substring(hash_1, 1, 8))::bit(32)::bigint) INTO col1
     FROM (
         SELECT md5(
@@ -118,12 +119,66 @@ BEGIN
 
     checksum := col1 + col2 + col3 + col4;
     checksum := md5(checksum);
-
+	
+	/* Statistiques */
     SELECT COUNT(id) INTO nombre FROM sommet;
     SELECT AVG(altitude) INTO altitudeMoyenne FROM sommet;
 
+    /* Insertion */
     INSERT INTO statistiques_sommet(moment, nombre, altitudemoyenne, checksum)
     VALUES(NOW(), nombre, altitudeMoyenne, checksum);
+    
+/* ----------------------------- TABLE CHAINEDEMONTAGNE ----------------------------- */
+	/* Checksum */
+    SELECT SUM(('x' || substring(hash_1, 1, 8))::bit(32)::bigint) INTO col1
+    FROM (
+        SELECT md5(
+        coalesce(md5("id"::text), '') ||
+        coalesce(md5("nom"::text), '') ||
+        coalesce(md5("description"::text), '')
+        ) AS hash_1
+        FROM chainedemontagne
+    ) AS hash_2;
+
+    SELECT SUM(('x' || substring(hash_1, 9, 8))::bit(32)::bigint) INTO col2
+    FROM (
+        SELECT md5(
+        coalesce(md5("id"::text), '') ||
+        coalesce(md5("nom"::text), '') ||
+        coalesce(md5("description"::text), '')
+        ) AS hash_1
+        FROM chainedemontagne
+    ) AS hash_2;
+
+    SELECT SUM(('x' || substring(hash_1, 17, 8))::bit(32)::bigint) INTO col3
+    FROM (
+        SELECT md5(
+        coalesce(md5("id"::text), '') ||
+        coalesce(md5("nom"::text), '') ||
+        coalesce(md5("description"::text), '')
+        ) AS hash_1
+        FROM chainedemontagne
+    ) AS hash_2;
+
+    SELECT SUM(('x' || substring(hash_1, 25, 8))::bit(32)::bigint) INTO col4
+    FROM (
+        SELECT md5(
+        coalesce(md5("id"::text), '') ||
+        coalesce(md5("nom"::text), '') ||
+        coalesce(md5("description"::text), '')
+        ) AS hash_1
+        FROM chainedemontagne
+    ) AS hash_2;
+
+    checksum := col1 + col2 + col3 + col4;
+    checksum := md5(checksum);
+	
+	/* Statistiques */
+    SELECT COUNT(id) INTO nombre FROM chainedemontagne;
+
+    /* Insertion */
+    INSERT INTO statistiques_chainedemontagne(moment, nombre, checksum)
+    VALUES(NOW(), nombre, checksum);
 END; 
 $$
 ````
