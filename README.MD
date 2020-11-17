@@ -183,3 +183,26 @@ END;
 $$
 ````
 
+## Plan de contingence
+
+https://docs.google.com/presentation/d/1mf8oiCBA9EW3z1SLxw08y0fmODLPxwxNhG86KISmp3c/edit?usp=sharing
+
+### Sauvegarde des données
+
+#### Automatisation de la sauvegarde
+
+Sauvegarde de la base de données 'neo' toutes les minutes
+
+```
+1-59 * * * * pg_dump --no-password -U postgres neo > /home/thomas/backups/backup_$(date 	+\%Y\%m\%d\%H\%M\%S).pgsql
+```
+
+#### Restauration
+
+https://youtu.be/X62yIiTkbeM
+
+```
+createdb -U postgres -T template0 neobis
+psql -U postgres neobis < /home/thomas/db_backups/backup_20201117162501.txt.pgsql
+```
+
